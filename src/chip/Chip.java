@@ -105,6 +105,11 @@ public class Chip {
         // execute Opcode
     }
 
+    /**
+     * Returns the display data
+     * @return
+     * Current state of the 64x32 display
+     */
     public byte[] getDisplay() {
         return display;
     }
