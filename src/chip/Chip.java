@@ -1,5 +1,10 @@
 package chip;
 
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
 public class Chip {
 
     /**
@@ -52,6 +57,8 @@ public class Chip {
      */
     private byte[] display;
 
+    private boolean needRedraw;
+
     /**
      * Reset the Chip 8 memory and pointers
      */
@@ -70,6 +77,8 @@ public class Chip {
         keys = new byte[16];
 
         display = new byte[64 * 32];
+
+        needRedraw = false;
     }
 
     /**
@@ -81,6 +90,25 @@ public class Chip {
         System.out.print(Integer.toHexString(opcode) + ": ");
         // decode Opcode
         switch (opcode & 0xF000) {
+
+            case 0x1000: // 1NNN: Jumps to address NNN
+                break;
+
+            case 0x2000: // 2NNN: Calls subroutine at NNN
+                char address = (char)(opcode & 0x0FFF);
+                stack[stackPointer] = pc;
+                stackPointer++;
+                pc = address;
+                break;
+
+            case 0x3000: // 3XNN: Skips the next instruction if VX equals NN
+                break;
+
+            case 0x6000: // 6XNN: Sets VX to NN
+                break;
+
+            case 0x7000: // 7XNN: Adds NN to VX
+                break;
 
             case 0x8000: // Contains more data in last nibble
 
@@ -114,4 +142,34 @@ public class Chip {
         return display;
     }
 
+    public boolean needsRedraw() {
+        return needRedraw;
+    }
+
+    public void removeDrawFlag() {
+        needRedraw = false;
+    }
+
+    public void loadProgram(String file) {
+        DataInputStream input = null;
+        try {
+            input = new DataInputStream(new FileInputStream(new File(file)));
+
+            int offset = 0;
+            while(input.available() > 0) {
+                memory[0x200 + offset] = (char)(input.readByte() & 0xFF);
+                offset++;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(0);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {}
+            }
+        }
+    }
 }
