@@ -77,7 +77,8 @@ public class Chip {
    */
   public void run() {
     // fetch Opcode
-
+    char opcode = (char)((memory[pc] << 8) | memory[pc + 1]);
+    System.out.println(Integer.toHexString(opcode));
     // decode Opcode
       // execute Opcode
   }
