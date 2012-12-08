@@ -95,19 +95,24 @@ public class Chip {
                 break;
 
             case 0x2000: // 2NNN: Calls subroutine at NNN
-                char address = (char)(opcode & 0x0FFF);
                 stack[stackPointer] = pc;
                 stackPointer++;
-                pc = address;
+                pc = (char)(opcode & 0x0FFF);;
                 break;
 
             case 0x3000: // 3XNN: Skips the next instruction if VX equals NN
                 break;
 
             case 0x6000: // 6XNN: Sets VX to NN
+                char x = (char)((opcode & 0x0F00) >> 8);
+                V[x] = (char)(opcode & 0x00FF);
+                pc += 0x2; // advanced 2 because opcode uses pc and pc+1
                 break;
 
             case 0x7000: // 7XNN: Adds NN to VX
+                char _x = (char)((opcode & 0x0F00) >> 8);
+                char nn = (char)(opcode & 0x00FF);
+                V[_x] = (char)((V[_x] + nn) & 0xFF);
                 break;
 
             case 0x8000: // Contains more data in last nibble
@@ -124,6 +129,16 @@ public class Chip {
 
                 }
 
+                break;
+
+            case 0xA000: // ANNN: Sets I to NNN
+                I = (char)(opcode & 0x0FFF);
+                pc += 0x2;
+                break;
+
+            case 0xD000: // DXYN: Draws a sprite (X, Y) size(8, N). Sprite is located at I
+                // code reserved for another episode
+                pc += 0x2;
                 break;
 
             default:
