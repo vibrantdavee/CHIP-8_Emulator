@@ -105,4 +105,8 @@ public class Chip {
         // execute Opcode
     }
 
+    public byte[] getDisplay() {
+        return display;
+    }
+
 }
