@@ -59,6 +59,7 @@ public class Chip {
     memory = new char[4096];
     V = new char[16];
     I = 0x0;
+    pc = 0x200;
 
     stack = new char[16];
     stackPointer = 0;
@@ -69,6 +70,16 @@ public class Chip {
     keys = new byte[16];
 
     display = new byte[64 * 32];
+  }
+
+  /**
+   * Executes a single Operation Code (Opcode)
+   */
+  public void run() {
+    // fetch Opcode
+
+    // decode Opcode
+      // execute Opcode
   }
 
 }
