@@ -78,8 +78,30 @@ public class Chip {
   public void run() {
     // fetch Opcode
     char opcode = (char)((memory[pc] << 8) | memory[pc + 1]);
-    System.out.println(Integer.toHexString(opcode));
+    System.out.print(Integer.toHexString(opcode) + ": ");
     // decode Opcode
+    switch(opcode & 0xF000) {
+
+      case 0x8000: // Contains more data in last nibble
+
+        switch(opcode & 0x000F) {
+
+          case 0x0000: // 8XY0: Sets VX to the value of VY.
+
+            break;
+          default:
+            System.err.println("Unsupported Opcode!");
+            System.exit(0);
+            break;
+
+        }
+
+        break;
+
+      default:
+        System.err.println("Unsupported Opcode!");
+        System.exit(0);
+    }
       // execute Opcode
   }
 
