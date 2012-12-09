@@ -91,6 +91,7 @@ public class Chip {
         char opcode = (char) ((memory[pc] << 8) | memory[pc + 1]);
         System.out.print(Integer.toHexString(opcode).toUpperCase() + ": ");
         // decode Opcode
+        // execute Opcode
         switch (opcode & 0xF000) {
 
             case 0x0000: { // Multi-case
@@ -261,7 +262,11 @@ public class Chip {
                             int totalX = x + _x;
                             int totalY = y + _y;
                             int index = totalY * 64 + totalX;
+                            // If the sprite is positioned so part of it is outside the coordinates of the display,
+                            // it wraps around to the opposite side of the screen
+                            index %= 64 * 32;
 
+                            System.out.print("Index = " + index + ". ");
                             if(display[index] == 1)
                                 V[0xF] = 1;
 
@@ -317,7 +322,7 @@ public class Chip {
                         V[x] = (char)delay_timer;
                         pc += 0x2;
                         System.out.println("V[0x" + Integer.toHexString(x).toUpperCase() + "] has been set to 0x" + Integer.toHexString(delay_timer).toUpperCase());
-                        //break;
+                        break;
                     }
 
                     case 0x0015: { // FX15: Sets delay time to VX
@@ -325,7 +330,7 @@ public class Chip {
                         delay_timer = V[x];
                         pc += 0x2;
                         System.out.println("Sets delay_timer to V[0x" + Integer.toHexString(x).toUpperCase() + "] = 0x" + Integer.toHexString(V[x]).toUpperCase());
-                        //break;
+                        break;
                     }
 
                     case 0x0029: { // FX29: Sets I to the location of the sprite for the character VX (Fontset)
@@ -374,7 +379,13 @@ public class Chip {
                 System.exit(0);
             }
         }
-        // execute Opcode
+
+        // The delay timer is active whenever the delay timer register (DT) is non-zero.
+        // This timer does nothing more than subtract 1 from the value of DT at a rate of 60Hz.
+        // When DT reaches 0, it deactivates.
+        if (delay_timer != 0) {
+            delay_timer--;
+        }
     }
 
     /**
