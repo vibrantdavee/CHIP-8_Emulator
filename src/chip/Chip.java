@@ -92,9 +92,36 @@ public class Chip {
         // decode Opcode
         switch (opcode & 0xF000) {
 
+            case 0x0000: { // Multi-case
+                switch(opcode & 0x00FF) {
+                    case 0x00E0: { // 00E0: Clear Screen
+                        System.err.println("Unsupported Opcode!");
+                        System.exit(0);
+                        break;
+                    }
+
+                    case 0x00EE: { // 00EE: Returns from subroutine
+                        stackPointer--;
+                        pc = (char)(stack[stackPointer] + 2);
+                        System.out.println("Returning to 0x" + Integer.toHexString(pc).toUpperCase());
+                        break;
+                    }
+
+                    default: { // 0NNN: Calls RCA 1802 Program at address NNN
+                        System.err.println("Unsupported Opcode!");
+                        System.exit(0);
+                        break;
+                    }
+
+                }
+                break;
+
+            }
+
             case 0x1000: { // 1NNN: Jumps to address NNN
-                System.err.println("Unsupported Opcode!");
-                System.exit(0);
+                char nnn = (char)(opcode & 0x0FFF);
+                pc = nnn;
+                System.out.println("Jumping to 0x" + Integer.toHexString(nnn).toUpperCase());
                 break;
             }
 
@@ -102,13 +129,21 @@ public class Chip {
                 stack[stackPointer] = pc;
                 stackPointer++;
                 pc = (char)(opcode & 0x0FFF);
-                System.out.println("Calling 0x" + Integer.toHexString(pc).toUpperCase());
+                System.out.println("Calling 0x" + Integer.toHexString(pc).toUpperCase() + " from " + Integer.toHexString(stack[stackPointer - 1]).toUpperCase());
                 break;
             }
 
             case 0x3000: { // 3XNN: Skips the next instruction if VX equals NN
-                System.err.println("Unsupported Opcode!");
-                System.exit(0);
+                int x = (opcode & 0x0F00) >> 8;
+                int nn = (opcode & 0x00FF);
+                if (V[x] == nn) {
+                    pc += 4;
+                    System.out.println("Skipping next instruction (V[0x" + Integer.toHexString(x).toUpperCase() +"] == 0x" + Integer.toHexString(nn).toUpperCase() + ")");
+                }
+                else {
+                    pc += 2;
+                    System.out.println("Not skipping next instruction (V[0x" + Integer.toHexString(x).toUpperCase() +"] != 0x" + Integer.toHexString(nn).toUpperCase() + ")");
+                }
                 break;
             }
 
@@ -184,7 +219,56 @@ public class Chip {
                 }
                 pc += 0x2;
                 needRedraw = true;
-                System.out.println("Drawing a sprite (" + x + "," + y + ") of size (8," + height + ")");
+                System.out.println("Drawing at V[0x" + Integer.toHexString((opcode & 0x0F00) >> 8).toUpperCase() + "] = 0x" + Integer.toHexString(x).toUpperCase() + ", V[0x" + Integer.toHexString((opcode & 0x00F0) >> 4).toUpperCase() + "] = 0x" + Integer.toHexString(y).toUpperCase());
+                break;
+            }
+
+            case 0xF000: { // Multi-case
+
+                switch (opcode & 0x00FF) {
+
+                    case 0x0015: { // FX15:
+                        break;
+                    }
+
+                    case 0x0029: { // FX29: Sets I to the location of the sprite for the character VX (Fontset)
+                        int x = (opcode & 0x0F00) >> 8;
+                        int character = V[x];
+                        I = (char)(0x50 + (character * 5));
+                        System.out.println("Setting I to Character V[0x" + Integer.toHexString(x).toUpperCase() + "] = 0x" + Integer.toHexString(V[x]).toUpperCase() + " Offset to 0x" + Integer.toHexString(I).toUpperCase());
+                        pc += 0x2;
+                        break;
+                    }
+
+                    case 0x0033: { // FX33: Store a binary-coded decimal value VX in I, I + 1 and I + 2
+                        int x = (opcode & 0x0F00) >> 8;
+                        int value = V[x];
+                        int hundreds = (value - (value % 100)) / 100;
+                        value -= hundreds * 100;
+                        int tens = (value - (value % 10)) / 10;
+                        value -= tens * 10;
+                        memory[I] = (char)hundreds;
+                        memory[I + 1] = (char)tens;
+                        memory[I + 2] = (char)value;
+                        pc += 0x2;
+                        System.out.println("Storing Binary-Coded Decimal V[0x" + Integer.toHexString(x).toUpperCase() + "] = " + Integer.toHexString(V[x]).toUpperCase() + " as { " + hundreds + ", " + tens + ", " + value + "}");
+                        break;
+                    }
+
+                    case 0x0065: { // FX65: Fills V0 to VX with values from I
+                        int x = (opcode & 0x0F00) >> 8;
+                        for (int i = 0; i < x; i++) {
+                            V[i] = memory[I + i];
+                        }
+                        pc += 0x2;
+                        System.out.println("Setting V[0x0] to V[0x" + Integer.toHexString(x).toUpperCase() + "] to the values of memory[0x" + Integer.toHexString(I & 0xFFFF).toUpperCase() + "]");
+                        break;
+                    }
+                    default: {
+                        System.err.println("Unsupported Opcode!");
+                        System.exit(0);
+                    }
+                }
                 break;
             }
 
