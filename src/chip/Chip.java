@@ -148,6 +148,21 @@ public class Chip {
                 break;
             }
 
+            case 0x4000: { // 4XNN: Skips the next instruction if VX != NN
+                int x = (opcode & 0x0F00) >> 8;
+                int nn = (opcode & 0x00FF);
+                System.out.print("Skips if V[0x" + Integer.toHexString(x).toUpperCase() + "] != 0x" + Integer.toHexString(nn).toUpperCase() +". ");
+                if (x != nn){
+                    pc += 0x4;
+                    System.out.println("0x" + Integer.toHexString(V[x]).toUpperCase() + " != 0x" + Integer.toHexString(nn).toUpperCase() +". Skipping next instruction.");
+                }
+                else {
+                    pc += 0x2;
+                    System.out.println("0x" + Integer.toHexString(V[x]).toUpperCase() + " == 0x" + Integer.toHexString(nn).toUpperCase() +". Not skipping next instruction.");
+                }
+                break;
+            }
+
             case 0x6000: { // 6XNN: Sets VX to NN
                 char x = (char)((opcode & 0x0F00) >> 8);
                 V[x] = (char)(opcode & 0x00FF);
@@ -170,10 +185,36 @@ public class Chip {
                 switch (opcode & 0x000F) {
 
                     case 0x0000: { // 8XY0: Sets VX to the value of VY.
-
+                        System.err.println("Unsupported Opcode!");
+                        System.exit(0);
                         break;
                     }
 
+                    case 0x0002: { // 8XY2: Sets VX to (VX AND VY)
+                        int x = (opcode & 0x0F00) >> 8;
+                        int y = (opcode & 0x00F0) >> 4;
+                        V[x] = (char)(V[x] & V[y]);
+                        pc += 0x2;
+                        System.out.println("Sets V[0x" + Integer.toHexString(x).toUpperCase() + "] to 0x" + Integer.toHexString(V[x]).toUpperCase() + " & 0x" + Integer.toHexString(V[y]).toUpperCase() + " = 0x" + Integer.toHexString(V[x] & V[y]).toUpperCase());
+                        break;
+                    }
+
+                    case 0x0004: { // 8XY4: Adds VY to VX.  VF is set to 1 when carry applies
+                        int x = (opcode & 0x0F00) >> 8;
+                        int y = (opcode & 0x00F0) >> 4;
+                        if(V[y] > 255 - V[x]){
+                            V[0xF] = 1;
+                            System.out.print("Carry Flag raised. ");
+                        }
+                        else {
+                            V[0xF] = 0;
+                            System.out.print("Carry Flag cleared. ");
+                        }
+                        V[x] = (char)((V[x] + V[y]) & 0xFF);
+                        pc += 0x2;
+                        System.out.println("Adds V[0x" + Integer.toHexString(x).toUpperCase() + "] and V[0x" + Integer.toHexString(y).toUpperCase() + "] = " + Integer.toHexString(V[x] + V[y]).toUpperCase());
+                        break;
+                    }
                     default: {
                         System.err.println("Unsupported Opcode!");
                         System.exit(0);
@@ -279,12 +320,12 @@ public class Chip {
                         //break;
                     }
 
-                    case 0x0015: { // FX15: Sets delay time to V[x]
+                    case 0x0015: { // FX15: Sets delay time to VX
                         int x = (opcode & 0x0F00) >> 8;
                         delay_timer = V[x];
                         pc += 0x2;
                         System.out.println("Sets delay_timer to V[0x" + Integer.toHexString(x).toUpperCase() + "] = 0x" + Integer.toHexString(V[x]).toUpperCase());
-                       // break;
+                        //break;
                     }
 
                     case 0x0029: { // FX29: Sets I to the location of the sprite for the character VX (Fontset)
