@@ -88,7 +88,7 @@ public class Chip {
     public void run() {
         // fetch Opcode
         char opcode = (char) ((memory[pc] << 8) | memory[pc + 1]);
-        System.out.print(Integer.toHexString(opcode) + ": ");
+        System.out.print(Integer.toHexString(opcode).toUpperCase() + ": ");
         // decode Opcode
         switch (opcode & 0xF000) {
 
@@ -102,7 +102,7 @@ public class Chip {
                 stack[stackPointer] = pc;
                 stackPointer++;
                 pc = (char)(opcode & 0x0FFF);
-                System.out.println("Calling " + Integer.toHexString(pc).toUpperCase());
+                System.out.println("Calling 0x" + Integer.toHexString(pc).toUpperCase());
                 break;
             }
 
@@ -116,7 +116,7 @@ public class Chip {
                 char x = (char)((opcode & 0x0F00) >> 8);
                 V[x] = (char)(opcode & 0x00FF);
                 pc += 0x2; // advanced 2 because opcode uses pc and pc+1
-                System.out.println("Setting V[" + x + "] to " + (int)V[x]);
+                System.out.println("Setting V[0x" + Integer.toHexString(x).toUpperCase() + "] to 0x" + Integer.toHexString(V[x]).toUpperCase());
                 break;
             }
 
@@ -125,7 +125,7 @@ public class Chip {
                 char nn = (char)(opcode & 0x00FF);
                 V[x] = (char)((V[x] + nn) & 0xFF);
                 pc += 0x2;
-                System.out.println("Adding " + nn + " to V[" + x + "] = " + (int)V[x]);
+                System.out.println("Adding 0x" + Integer.toHexString(nn).toUpperCase() + " to V[0x" + Integer.toHexString(x).toUpperCase() + "] = 0x" + Integer.toHexString(V[x]).toUpperCase());
                 break;
             }
 
@@ -156,9 +156,35 @@ public class Chip {
                 break;
             }
 
-            case 0xD000: { // DXYN: Draws a sprite (X, Y) size(8, N). Sprite is located at I
-                // code reserved for another episode
+            case 0xD000: { // DXYN: Draws a sprite (V[X], V[Y]) size(8, N). Sprite is located at I
+                // Drawing by XOR-ing to the screen
+                // Check collision and set V[0xF]
+                // Read the image from I
+                int x = V[(opcode & 0x0F00) >> 8];
+                int y = V[(opcode & 0x00F0) >> 4];
+                int height = opcode & 0x000F;
+
+                V[0xF] = 0;
+
+                for(int _y = 0; _y < height; _y++) {
+                    int line = memory[I + _y];
+                    for(int _x = 0; _x < 8; _x++) {
+                        int pixel = line & (0x80 >> _x);
+                        if(pixel != 0) {
+                            int totalX = x + _x;
+                            int totalY = y + _y;
+                            int index = totalY * 64 + totalX;
+
+                            if(display[index] == 1)
+                                V[0xF] = 1;
+
+                            display[index] ^= 1;
+                        }
+                    }
+                }
                 pc += 0x2;
+                needRedraw = true;
+                System.out.println("Drawing a sprite (" + x + "," + y + ") of size (8," + height + ")");
                 break;
             }
 
