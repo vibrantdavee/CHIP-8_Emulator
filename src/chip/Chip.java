@@ -92,59 +92,80 @@ public class Chip {
         // decode Opcode
         switch (opcode & 0xF000) {
 
-            case 0x1000: // 1NNN: Jumps to address NNN
+            case 0x1000: { // 1NNN: Jumps to address NNN
+                System.err.println("Unsupported Opcode!");
+                System.exit(0);
                 break;
+            }
 
-            case 0x2000: // 2NNN: Calls subroutine at NNN
+            case 0x2000: { // 2NNN: Calls subroutine at NNN
                 stack[stackPointer] = pc;
                 stackPointer++;
-                pc = (char)(opcode & 0x0FFF);;
+                pc = (char)(opcode & 0x0FFF);
+                System.out.println("Calling " + Integer.toHexString(pc).toUpperCase());
                 break;
+            }
 
-            case 0x3000: // 3XNN: Skips the next instruction if VX equals NN
+            case 0x3000: { // 3XNN: Skips the next instruction if VX equals NN
+                System.err.println("Unsupported Opcode!");
+                System.exit(0);
                 break;
+            }
 
-            case 0x6000: // 6XNN: Sets VX to NN
+            case 0x6000: { // 6XNN: Sets VX to NN
                 char x = (char)((opcode & 0x0F00) >> 8);
                 V[x] = (char)(opcode & 0x00FF);
                 pc += 0x2; // advanced 2 because opcode uses pc and pc+1
+                System.out.println("Setting V[" + x + "] to " + (int)V[x]);
                 break;
+            }
 
-            case 0x7000: // 7XNN: Adds NN to VX
-                char _x = (char)((opcode & 0x0F00) >> 8);
+            case 0x7000: { // 7XNN: Adds NN to VX
+                char x = (char)((opcode & 0x0F00) >> 8);
                 char nn = (char)(opcode & 0x00FF);
-                V[_x] = (char)((V[_x] + nn) & 0xFF);
+                V[x] = (char)((V[x] + nn) & 0xFF);
+                pc += 0x2;
+                System.out.println("Adding " + nn + " to V[" + x + "] = " + (int)V[x]);
                 break;
+            }
 
-            case 0x8000: // Contains more data in last nibble
+            case 0x8000: { // Contains more data in last nibble
 
                 switch (opcode & 0x000F) {
 
-                    case 0x0000: // 8XY0: Sets VX to the value of VY.
+                    case 0x0000: { // 8XY0: Sets VX to the value of VY.
 
                         break;
-                    default:
+                    }
+
+                    default: {
                         System.err.println("Unsupported Opcode!");
                         System.exit(0);
                         break;
+                    }
 
                 }
 
                 break;
+            }
 
-            case 0xA000: // ANNN: Sets I to NNN
+            case 0xA000: { // ANNN: Sets I to NNN
                 I = (char)(opcode & 0x0FFF);
                 pc += 0x2;
+                System.out.println("Set I to " + Integer.toHexString(I).toUpperCase());
                 break;
+            }
 
-            case 0xD000: // DXYN: Draws a sprite (X, Y) size(8, N). Sprite is located at I
+            case 0xD000: { // DXYN: Draws a sprite (X, Y) size(8, N). Sprite is located at I
                 // code reserved for another episode
                 pc += 0x2;
                 break;
+            }
 
-            default:
+            default: {
                 System.err.println("Unsupported Opcode!");
                 System.exit(0);
+            }
         }
         // execute Opcode
     }
