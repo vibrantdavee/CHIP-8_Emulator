@@ -328,4 +328,11 @@ public class Chip {
             memory[0x50 + i] = ChipData.fontset[i];
         }
     }
+
+
+    public void setKeyBuffer(int[] keyBuffer) {
+        for(int i = 0; i < keys.length; i++) {
+            keys[i] = (byte)keyBuffer[i];
+        }
+    }
 }
