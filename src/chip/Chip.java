@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Random;
 
 public class Chip {
 
@@ -137,11 +138,11 @@ public class Chip {
                 int x = (opcode & 0x0F00) >> 8;
                 int nn = (opcode & 0x00FF);
                 if (V[x] == nn) {
-                    pc += 4;
+                    pc += 0x4;
                     System.out.println("Skipping next instruction (V[0x" + Integer.toHexString(x).toUpperCase() +"] == 0x" + Integer.toHexString(nn).toUpperCase() + ")");
                 }
                 else {
-                    pc += 2;
+                    pc += 0x2;
                     System.out.println("Not skipping next instruction (V[0x" + Integer.toHexString(x).toUpperCase() +"] != 0x" + Integer.toHexString(nn).toUpperCase() + ")");
                 }
                 break;
@@ -191,6 +192,16 @@ public class Chip {
                 break;
             }
 
+            case 0xC000: { // CXNN: Sets VX to a random number and NN
+                int x = (opcode & 0x0F00) >> 8;
+                int nn = (opcode & 0x00FF);
+                int randomNumber =  new Random().nextInt(256) & nn;
+                V[x] = (char)randomNumber;
+                pc += 0x2;
+                System.out.println("V[0x" + Integer.toHexString(x).toUpperCase() + "] has been set to (randomised) 0x" + Integer.toHexString(randomNumber).toUpperCase());
+                break;
+            }
+
             case 0xD000: { // DXYN: Draws a sprite (V[X], V[Y]) size(8, N). Sprite is located at I
                 // Drawing by XOR-ing to the screen
                 // Check collision and set V[0xF]
@@ -223,12 +234,57 @@ public class Chip {
                 break;
             }
 
+            case 0xE000: { // Multi-case
+                switch (opcode & 0x00FF){
+
+                    case 0x009E: { // EX9E: Skips the next instruction if key VX is pressed
+                        int key = (opcode & 0x0F00) >> 8;
+                        if (keys[key] == 1) {
+                            pc += 0x4;
+                        }
+                        else {
+                            pc += 0x2;
+                        }
+                        break;
+                    }
+
+                    case 0x00A1: { // EXA1: Skips the next instruction if the key VX is not pressed
+                        int key = (opcode & 0x0F00) >> 8;
+                        if (keys[key] == 0) {
+                            pc += 0x4;
+                        }
+                        else {
+                            pc += 0x2;
+                        }
+                        break;
+                    }
+
+                    default: {
+                        System.err.println("Unsupported Opcode!");
+                        System.exit(0);
+                    }
+                }
+                break;
+            }
+
             case 0xF000: { // Multi-case
 
                 switch (opcode & 0x00FF) {
 
-                    case 0x0015: { // FX15:
-                        break;
+                    case 0x0007: { // FX07: Sets VX to the value of delay_timer
+                        int x = (opcode & 0x0F00) >> 8;
+                        V[x] = (char)delay_timer;
+                        pc += 0x2;
+                        System.out.println("V[0x" + Integer.toHexString(x).toUpperCase() + "] has been set to 0x" + Integer.toHexString(delay_timer).toUpperCase());
+                        //break;
+                    }
+
+                    case 0x0015: { // FX15: Sets delay time to V[x]
+                        int x = (opcode & 0x0F00) >> 8;
+                        delay_timer = V[x];
+                        pc += 0x2;
+                        System.out.println("Sets delay_timer to V[0x" + Integer.toHexString(x).toUpperCase() + "] = 0x" + Integer.toHexString(V[x]).toUpperCase());
+                       // break;
                     }
 
                     case 0x0029: { // FX29: Sets I to the location of the sprite for the character VX (Fontset)
