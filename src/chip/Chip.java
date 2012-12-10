@@ -216,7 +216,7 @@ public class Chip {
                     case 0x0001: { // 8XY2: Sets VX to (VX OR VY)
                         int x = (opcode & 0x0F00) >> 8;
                         int y = (opcode & 0x00F0) >> 4;
-                        V[x] = (char)(V[x] | V[y]);
+                        V[x] = (char)((V[x] | V[y]) & 0xFF);
                         pc += 0x2;
                         System.out.println("Sets V[0x" + Integer.toHexString(x).toUpperCase() + "] to 0x" + Integer.toHexString(V[x]).toUpperCase() + " | 0x" + Integer.toHexString(V[y]).toUpperCase() + " = 0x" + Integer.toHexString(V[x] | V[y]).toUpperCase());
                         break;
@@ -225,7 +225,7 @@ public class Chip {
                     case 0x0002: { // 8XY2: Sets VX to (VX AND VY)
                         int x = (opcode & 0x0F00) >> 8;
                         int y = (opcode & 0x00F0) >> 4;
-                        V[x] = (char)(V[x] & V[y]);
+                        V[x] = (char)((V[x] & V[y]) & 0xFF);
                         pc += 0x2;
                         System.out.println("Sets V[0x" + Integer.toHexString(x).toUpperCase() + "] to 0x" + Integer.toHexString(V[x]).toUpperCase() + " & 0x" + Integer.toHexString(V[y]).toUpperCase() + " = 0x" + Integer.toHexString(V[x] & V[y]).toUpperCase());
                         break;
@@ -234,7 +234,7 @@ public class Chip {
                     case 0x0003: { // 8XY2: Sets VX to (VX XOR VY)
                         int x = (opcode & 0x0F00) >> 8;
                         int y = (opcode & 0x00F0) >> 4;
-                        V[x] = (char)(V[x] ^ V[y]);
+                        V[x] = (char)((V[x] ^ V[y]) & 0xFF);
                         pc += 0x2;
                         System.out.println("Sets V[0x" + Integer.toHexString(x).toUpperCase() + "] to 0x" + Integer.toHexString(V[x]).toUpperCase() + " ^ 0x" + Integer.toHexString(V[y]).toUpperCase() + " = 0x" + Integer.toHexString(V[x] ^ V[y]).toUpperCase());
                         break;
@@ -323,18 +323,19 @@ public class Chip {
                 break;
             }
 
-                case 0xA000: { // ANNN: Sets I to NNN
-                I = (char)(opcode & 0x0FFF);
+            case 0xA000: { // ANNN: Sets I to NNN
+                int nnn = (opcode & 0x0FFF);
+                I = (char)nnn;
                 pc += 0x2;
-                System.out.println("Set I to " + Integer.toHexString(I).toUpperCase());
+                System.out.println("Set I to " + Integer.toHexString(nnn).toUpperCase());
                 break;
             }
 
-            case 0xC000: { // CXNN: Sets VX to a random number and NN
+            case 0xC000: { // CXNN: Sets VX to a random number AND NN
                 int x = (opcode & 0x0F00) >> 8;
                 int nn = (opcode & 0x00FF);
                 int randomNumber =  new Random().nextInt(256) & nn;
-                V[x] = (char)randomNumber;
+                V[x] = (char)(randomNumber & 0xFF);
                 pc += 0x2;
                 System.out.println("V[0x" + Integer.toHexString(x).toUpperCase() + "] has been set to (randomised) 0x" + Integer.toHexString(randomNumber).toUpperCase());
                 break;
@@ -364,7 +365,7 @@ public class Chip {
                             totalY %= 32;
                             int index = totalY * 64 + totalX;
 
-                            System.out.print("Index = " + index + ". ");
+                            //System.out.print("Index = " + index + ". ");
                             if(display[index] == 1)
                                 V[0xF] = 1;
 
