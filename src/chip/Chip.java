@@ -97,8 +97,10 @@ public class Chip {
             case 0x0000: { // Multi-case
                 switch(opcode & 0x0FFF) {
                     case 0x00E0: { // 00E0: Clear Screen
-                        System.err.println("Unsupported Opcode!");
-                        System.exit(0);
+                        for (int i = 0; i < display.length; i++){
+                            display[i] = 0;
+                        }
+                        pc += 0x2;
                         break;
                     }
 
@@ -154,7 +156,7 @@ public class Chip {
                 int x = (opcode & 0x0F00) >> 8;
                 int nn = (opcode & 0x00FF);
                 System.out.print("Skips if V[0x" + Integer.toHexString(x).toUpperCase() + "] != 0x" + Integer.toHexString(nn).toUpperCase() +". ");
-                if (x != nn){
+                if (V[x] != nn){
                     pc += 0x4;
                     System.out.println("0x" + Integer.toHexString(V[x]).toUpperCase() + " != 0x" + Integer.toHexString(nn).toUpperCase() +". Skipping next instruction.");
                 }
@@ -257,6 +259,44 @@ public class Chip {
                         break;
                     }
 
+                    case 0x0005: { // 8005:
+                        System.err.println("Unsupported Opcode!");
+                        System.exit(0);
+                        break;
+                    }
+
+
+                    case 0x0006: { // 8XY6: Set Vx = Vx SHR 1.
+                        int x = (opcode & 0x0F00) >> 8;
+                        // int y = (opcode & 0x00F0) >> 4;
+                        if ((V[x] & 0x1)==1){
+                            V[0xF] = 1;
+                            System.out.print("Overflow Flag raised. ");
+                        }
+                        else {
+                            V[0xF] = 0;
+                            System.out.print("Overflow Flag cleared. ");
+                        }
+                        System.out.println("Dividing V[0x" + Integer.toHexString(x).toUpperCase() + "] = " + Integer.toHexString(V[x]).toUpperCase() + "by 2. Result = 0x" + Integer.toHexString(V[x]>>1).toUpperCase());
+                        V[x] = (char)((V[x] >> 1) & 0xFF);
+                        pc += 0x2;
+                        break;
+                    }
+
+
+                    case 0x0007: { // 8007:
+                        System.err.println("Unsupported Opcode!");
+                        System.exit(0);
+                        break;
+                    }
+
+
+                    case 0x000E: { // 800E:
+                        System.err.println("Unsupported Opcode!");
+                        System.exit(0);
+                        break;
+                    }
+
                     default: {
                         System.err.println("Unsupported Opcode!");
                         System.exit(0);
@@ -268,7 +308,22 @@ public class Chip {
                 break;
             }
 
-            case 0xA000: { // ANNN: Sets I to NNN
+            case 0x9000: { // 9XY0: Skip next instruction if Vx != Vy.
+                int x = (opcode & 0x0F00) >> 8;
+                int y = (opcode & 0x00F0) >> 4;
+                System.out.print("Skips if V[0x" + Integer.toHexString(x).toUpperCase() + "] != V[0x" + Integer.toHexString(y).toUpperCase() +"]. ");
+                if (V[x] != V[y]){
+                    pc += 0x4;
+                    System.out.println("0x" + Integer.toHexString(V[x]).toUpperCase() + " != 0x" + Integer.toHexString(V[y]).toUpperCase() +". Skipping next instruction.");
+                }
+                else {
+                    pc += 0x2;
+                    System.out.println("0x" + Integer.toHexString(V[x]).toUpperCase() + " == 0x" + Integer.toHexString(V[y]).toUpperCase() +". Not skipping next instruction.");
+                }
+                break;
+            }
+
+                case 0xA000: { // ANNN: Sets I to NNN
                 I = (char)(opcode & 0x0FFF);
                 pc += 0x2;
                 System.out.println("Set I to " + Integer.toHexString(I).toUpperCase());
@@ -364,13 +419,23 @@ public class Chip {
                         int x = (opcode & 0x0F00) >> 8;
                         V[x] = (char)delay_timer;
                         pc += 0x2;
-                        System.out.println("V[0x" + Integer.toHexString(x).toUpperCase() + "] has been set to 0x" + Integer.toHexString(delay_timer).toUpperCase());
+                        System.out.println("V[0x" + Integer.toHexString(x).toUpperCase() + "] has been set to delay_timer = 0x" + Integer.toHexString(delay_timer).toUpperCase());
                         break;
                     }
 
                     case 0x000A: { // FX0A: Wait for key press, store the value of the key in VX
-                        System.err.println("Unsupported Opcode!");
-                        System.exit(0);
+                        int x = (opcode & 0x0F00) >> 8;
+                        System.out.print("Waiting for keypress. ");
+                        for (int i = 0; i < keys.length; i++)  {
+                            if (keys[i] == 1) {
+                                pc += 0x2;
+                                V[x] = (char)i;
+                                System.out.print("Found: " + Integer.toHexString(i).toUpperCase() + "! ");
+                                return;
+                            }
+                        }
+                        System.out.println();
+                        break;
                     }
 
                     case 0x0015: { // FX15: Sets delay time to VX
@@ -387,9 +452,11 @@ public class Chip {
                         break;
                     }
 
-                    case 0x001E: {
-                        System.err.println("Unsupported Opcode!");
-                        System.exit(0);
+                    case 0x001E: { // FX1E: Set I = I + Vx.
+                        int x = (opcode & 0x0F00) >> 8;
+                        I = (char)((I + V[x]) & 0xFFFF);
+                        pc += 0x2;
+                        System.out.println("Adding V[" + Integer.toHexString(x).toUpperCase() + "] to I. I = " + Integer.toHexString(I).toUpperCase());
                         break;
                     }
 
@@ -450,7 +517,7 @@ public class Chip {
         // This timer does nothing more than subtract 1 from the value of DT at a rate of 60Hz.
         // When DT reaches 0, it deactivates.
         if (delay_timer != 0) {
-            delay_timer--;
+            delay_timer = (char)(delay_timer - 1);
         }
     }
 
