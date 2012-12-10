@@ -259,9 +259,20 @@ public class Chip {
                         break;
                     }
 
-                    case 0x0005: { // 8005:
-                        System.err.println("Unsupported Opcode!");
-                        System.exit(0);
+                    case 0x0005: { // 8XY5: Set Vx = Vx - Vy, set VF = NOT borrow.
+                        int x = (opcode & 0x0F00) >> 8;
+                        int y = (opcode & 0x00F0) >> 4;
+                        if (V[x] > V[y]){
+                            V[0xF] = 1;
+                            System.out.print("NOT Borrow Flag raised. ");
+                        }
+                        else {
+                            V[0xF] = 0;
+                            System.out.print("NOT Borrow Flag cleared. ");
+                        }
+                        V[x] = (char)((V[x] - V[y]) & 0xFF);
+                        pc += 0x2;
+                        System.out.println("Subtracting V[0x" + Integer.toHexString(y).toUpperCase() + "] from V[0x" + Integer.toHexString(x).toUpperCase() + ". Result = 0x" + Integer.toHexString(V[x]).toUpperCase());
                         break;
                     }
 
