@@ -10,7 +10,7 @@ public class Main extends Thread {
     public Main() {
         chip8 = new Chip();
         chip8.init();
-        chip8.loadProgram("./programs/tetris.c8");]
+        chip8.loadProgram("./programs/tetris.c8");
         frame = new ChipFrame(chip8);
     }
 
