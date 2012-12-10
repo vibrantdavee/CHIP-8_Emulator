@@ -458,9 +458,11 @@ public class Chip {
                         break;
                     }
 
-                    case 0x0018: {
-                        System.err.println("Unsupported Opcode!");
-                        System.exit(0);
+                    case 0x0018: { // FX18: Set sound timer = Vx
+                        int x = (opcode & 0x0F00) >> 8;
+                        sound_timer = V[x];
+                        pc += 0x2;
+                        System.out.println("Sets sound_timer to V[0x" + Integer.toHexString(x).toUpperCase() + "] = 0x" + Integer.toHexString(V[x]).toUpperCase());
                         break;
                     }
 
@@ -586,6 +588,7 @@ public class Chip {
     public void setKeyBuffer(int[] keyBuffer) {
         for(int i = 0; i < keys.length; i++) {
             keys[i] = (byte)keyBuffer[i];
+//            System.out.println(i + ": " + keys[i]);
         }
     }
 }
