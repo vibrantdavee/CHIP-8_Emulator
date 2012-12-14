@@ -394,7 +394,8 @@ public class Chip {
                 switch (opcode & 0x00FF){
 
                     case 0x009E: { // EX9E: Skips the next instruction if key VX is pressed
-                        int key = (opcode & 0x0F00) >> 8;
+                        int x = (opcode & 0x0F00) >> 8;
+                        int key = V[x];
                         if (keys[key] == 1) {
                             pc += 0x4;
                         }
@@ -405,7 +406,8 @@ public class Chip {
                     }
 
                     case 0x00A1: { // EXA1: Skips the next instruction if the key VX is not pressed
-                        int key = (opcode & 0x0F00) >> 8;
+                        int x = (opcode & 0x0F00) >> 8;
+                        int key = V[x];
                         if (keys[key] == 0) {
                             pc += 0x4;
                         }
