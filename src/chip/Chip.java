@@ -508,7 +508,7 @@ public class Chip {
 
                     case 0x0065: { // FX65: Fills V0 to VX with values from I
                         int x = (opcode & 0x0F00) >> 8;
-                        for (int i = 0; i <= x; i++) {
+                        for (int i = 0; i <= x; i++) { // not sure if <= or just <
                             V[i] = memory[I + i];
                         }
                         pc += 0x2;
@@ -534,6 +534,10 @@ public class Chip {
         // When DT reaches 0, it deactivates.
         if (delay_timer != 0) {
             delay_timer = (char)(delay_timer - 1);
+        }
+
+        if (sound_timer != 0) {
+            sound_timer = (char)(sound_timer -1);
         }
     }
 
