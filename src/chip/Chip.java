@@ -508,7 +508,7 @@ public class Chip {
 
                     case 0x0065: { // FX65: Fills V0 to VX with values from I
                         int x = (opcode & 0x0F00) >> 8;
-                        for (int i = 0; i <= x; i++) { // not sure if <= or just <
+                        for (int i = 0; i <= x; i++) {
                             V[i] = memory[I + i];
                         }
                         pc += 0x2;
@@ -538,6 +538,7 @@ public class Chip {
 
         if (sound_timer != 0) {
             sound_timer = (char)(sound_timer -1);
+            Audio.playSound("./beep.wav");
         }
     }
 
