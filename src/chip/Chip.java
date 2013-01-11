@@ -89,7 +89,7 @@ public class Chip {
     public void run() {
         // fetch Opcode
         char opcode = (char) ((memory[pc] << 8) | memory[pc + 1]);
-        System.out.print(Integer.toHexString(opcode).toUpperCase() + ": ");
+        System.out.print(toHex(opcode) + ": ");
         // decode Opcode
         // execute Opcode
         switch (opcode & 0xF000) {
@@ -107,7 +107,7 @@ public class Chip {
                     case 0x00EE: { // 00EE: Returns from subroutine
                         stackPointer--;
                         pc = (char)(stack[stackPointer] + 2);
-                        System.out.println("Returning to 0x" + Integer.toHexString(pc).toUpperCase());
+                        System.out.println("Returning to 0x" + toHex(pc));
                         break;
                     }
 
@@ -125,7 +125,7 @@ public class Chip {
             case 0x1000: { // 1NNN: Jumps to address NNN
                 char nnn = (char)(opcode & 0x0FFF);
                 pc = nnn;
-                System.out.println("Jumping to 0x" + Integer.toHexString(nnn).toUpperCase());
+                System.out.println("Jumping to 0x" + toHex(nnn));
                 break;
             }
 
@@ -133,21 +133,21 @@ public class Chip {
                 stack[stackPointer] = pc;
                 stackPointer++;
                 pc = (char)(opcode & 0x0FFF);
-                System.out.println("Calling 0x" + Integer.toHexString(pc).toUpperCase() + " from " + Integer.toHexString(stack[stackPointer - 1]).toUpperCase());
+                System.out.println("Calling 0x" + toHex(pc) + " from " + toHex(stack[stackPointer - 1]));
                 break;
             }
 
             case 0x3000: { // 3XNN: Skips the next instruction if VX equals NN
                 int x = (opcode & 0x0F00) >> 8;
                 int nn = (opcode & 0x00FF);
-                System.out.print("Skips if V[0x" + Integer.toHexString(x).toUpperCase() + "] == 0x" + Integer.toHexString(nn).toUpperCase() +". ");
+                System.out.print("Skips if V[0x" + toHex(x) + "] == 0x" + toHex(nn) +". ");
                 if (V[x] == nn) {
                     pc += 0x4;
-                    System.out.println("Skipping next instruction (V[0x" + Integer.toHexString(x).toUpperCase() +"] == 0x" + Integer.toHexString(nn).toUpperCase() + ")");
+                    System.out.println("Skipping next instruction (V[0x" + toHex(x) +"] == 0x" + toHex(nn) + ")");
                 }
                 else {
                     pc += 0x2;
-                    System.out.println("Not skipping next instruction (V[0x" + Integer.toHexString(x).toUpperCase() +"] != 0x" + Integer.toHexString(nn).toUpperCase() + ")");
+                    System.out.println("Not skipping next instruction (V[0x" + toHex(x) +"] != 0x" + toHex(nn) + ")");
                 }
                 break;
             }
@@ -155,14 +155,14 @@ public class Chip {
             case 0x4000: { // 4XNN: Skips the next instruction if VX != NN
                 int x = (opcode & 0x0F00) >> 8;
                 int nn = (opcode & 0x00FF);
-                System.out.print("Skips if V[0x" + Integer.toHexString(x).toUpperCase() + "] != 0x" + Integer.toHexString(nn).toUpperCase() +". ");
+                System.out.print("Skips if V[0x" + toHex(x) + "] != 0x" + toHex(nn) +". ");
                 if (V[x] != nn){
                     pc += 0x4;
-                    System.out.println("0x" + Integer.toHexString(V[x]).toUpperCase() + " != 0x" + Integer.toHexString(nn).toUpperCase() +". Skipping next instruction.");
+                    System.out.println("0x" + toHex(V[x]) + " != 0x" + toHex(nn) +". Skipping next instruction.");
                 }
                 else {
                     pc += 0x2;
-                    System.out.println("0x" + Integer.toHexString(V[x]).toUpperCase() + " == 0x" + Integer.toHexString(nn).toUpperCase() +". Not skipping next instruction.");
+                    System.out.println("0x" + toHex(V[x]) + " == 0x" + toHex(nn) +". Not skipping next instruction.");
                 }
                 break;
             }
@@ -170,14 +170,14 @@ public class Chip {
             case 0x5000: { // 5XY0: Skips next instruction if VX == VY
                 int x = (opcode & 0x0F00) >> 8;
                 int y = (opcode & 0X00F0) >> 4;
-                System.out.print("Skips if V[0x" + Integer.toHexString(x).toUpperCase() + "] != V[0x" + Integer.toHexString(y).toUpperCase() +". ");
+                System.out.print("Skips if V[0x" + toHex(x) + "] != V[0x" + toHex(y) +". ");
                 if (V[x] == V[y]) {
                     pc += 0x4;
-                    System.out.println("0x" + Integer.toHexString(V[x]).toUpperCase() + " == 0x" + Integer.toHexString(V[y]).toUpperCase() +". Skipping next instruction.");
+                    System.out.println("0x" + toHex(V[x]) + " == 0x" + toHex(V[y]) +". Skipping next instruction.");
                 }
                 else {
                     pc += 0x2;
-                    System.out.println("0x" + Integer.toHexString(V[x]).toUpperCase() + " != 0x" + Integer.toHexString(V[y]).toUpperCase() +". Not skipping next instruction.");
+                    System.out.println("0x" + toHex(V[x]) + " != 0x" + toHex(V[y]) +". Not skipping next instruction.");
                 }
                 break;
             }
@@ -187,7 +187,7 @@ public class Chip {
                 int nn = (opcode & 0x00FF);
                 V[x] = (char)nn;
                 pc += 0x2; // advanced 2 because opcode uses pc and pc+1
-                System.out.println("Setting V[0x" + Integer.toHexString(x).toUpperCase() + "] to 0x" + Integer.toHexString(nn).toUpperCase());
+                System.out.println("Setting V[0x" + toHex(x) + "] to 0x" + toHex(nn));
                 break;
             }
 
@@ -196,7 +196,7 @@ public class Chip {
                 int nn = (opcode & 0x00FF);
                 V[x] = (char)((V[x] + nn) & 0xFF);
                 pc += 0x2;
-                System.out.println("Adding 0x" + Integer.toHexString(nn).toUpperCase() + " to V[0x" + Integer.toHexString(x).toUpperCase() + "] = 0x" + Integer.toHexString(V[x]).toUpperCase());
+                System.out.println("Adding 0x" + toHex(nn) + " to V[0x" + toHex(x) + "] = 0x" + toHex(V[x]));
                 break;
             }
 
@@ -209,7 +209,7 @@ public class Chip {
                         int y = (opcode & 0x00F0) >> 4;
                         V[x] = V[y];
                         pc += 0x2;
-                        System.out.println("Sets V[0x" + Integer.toHexString(x).toUpperCase() + "] to V[0x" + Integer.toHexString(y).toUpperCase() + "] = 0x" + Integer.toHexString(V[y]).toUpperCase());
+                        System.out.println("Sets V[0x" + toHex(x) + "] to V[0x" + toHex(y) + "] = 0x" + toHex(V[y]));
                         break;
                     }
 
@@ -218,7 +218,7 @@ public class Chip {
                         int y = (opcode & 0x00F0) >> 4;
                         V[x] = (char)((V[x] | V[y]) & 0xFF);
                         pc += 0x2;
-                        System.out.println("Sets V[0x" + Integer.toHexString(x).toUpperCase() + "] to 0x" + Integer.toHexString(V[x]).toUpperCase() + " | 0x" + Integer.toHexString(V[y]).toUpperCase() + " = 0x" + Integer.toHexString(V[x] | V[y]).toUpperCase());
+                        System.out.println("Sets V[0x" + toHex(x) + "] to 0x" + toHex(V[x]) + " | 0x" + toHex(V[y]) + " = 0x" + toHex(V[x] | V[y]));
                         break;
                     }
 
@@ -227,7 +227,7 @@ public class Chip {
                         int y = (opcode & 0x00F0) >> 4;
                         V[x] = (char)((V[x] & V[y]) & 0xFF);
                         pc += 0x2;
-                        System.out.println("Sets V[0x" + Integer.toHexString(x).toUpperCase() + "] to 0x" + Integer.toHexString(V[x]).toUpperCase() + " & 0x" + Integer.toHexString(V[y]).toUpperCase() + " = 0x" + Integer.toHexString(V[x] & V[y]).toUpperCase());
+                        System.out.println("Sets V[0x" + toHex(x) + "] to 0x" + toHex(V[x]) + " & 0x" + toHex(V[y]) + " = 0x" + toHex(V[x] & V[y]));
                         break;
                     }
 
@@ -236,7 +236,7 @@ public class Chip {
                         int y = (opcode & 0x00F0) >> 4;
                         V[x] = (char)((V[x] ^ V[y]) & 0xFF);
                         pc += 0x2;
-                        System.out.println("Sets V[0x" + Integer.toHexString(x).toUpperCase() + "] to 0x" + Integer.toHexString(V[x]).toUpperCase() + " ^ 0x" + Integer.toHexString(V[y]).toUpperCase() + " = 0x" + Integer.toHexString(V[x] ^ V[y]).toUpperCase());
+                        System.out.println("Sets V[0x" + toHex(x) + "] to 0x" + toHex(V[x]) + " ^ 0x" + toHex(V[y]) + " = 0x" + toHex(V[x] ^ V[y]));
                         break;
                     }
 
@@ -255,7 +255,7 @@ public class Chip {
 
                         V[x] = (char)(result & 0xFF);
                         pc += 0x2;
-                        System.out.println("Adds V[0x" + Integer.toHexString(x).toUpperCase() + "] and V[0x" + Integer.toHexString(y).toUpperCase() + "] = " + Integer.toHexString(result).toUpperCase());
+                        System.out.println("Adds V[0x" + toHex(x) + "] and V[0x" + toHex(y) + "] = " + toHex(result));
                         break;
                     }
 
@@ -272,7 +272,7 @@ public class Chip {
                         }
                         V[x] = (char)((V[x] - V[y]) & 0xFF);
                         pc += 0x2;
-                        System.out.println("Subtracting V[0x" + Integer.toHexString(y).toUpperCase() + "] from V[0x" + Integer.toHexString(x).toUpperCase() + ". Result = 0x" + Integer.toHexString(V[x]).toUpperCase());
+                        System.out.println("Subtracting V[0x" + toHex(y) + "] from V[0x" + toHex(x) + ". Result = 0x" + toHex(V[x]));
                         break;
                     }
 
@@ -288,7 +288,7 @@ public class Chip {
                             V[0xF] = 0;
                             System.out.print("Overflow Flag cleared. ");
                         }
-                        System.out.println("Dividing V[0x" + Integer.toHexString(x).toUpperCase() + "] = " + Integer.toHexString(V[x]).toUpperCase() + "by 2. Result = 0x" + Integer.toHexString(V[x]>>1).toUpperCase());
+                        System.out.println("Dividing V[0x" + toHex(x) + "] = " + toHex(V[x]) + "by 2. Result = 0x" + toHex(V[x]>>1));
                         V[x] = (char)((V[x] >> 1) & 0xFF);
                         pc += 0x2;
                         break;
@@ -322,14 +322,14 @@ public class Chip {
             case 0x9000: { // 9XY0: Skip next instruction if Vx != Vy.
                 int x = (opcode & 0x0F00) >> 8;
                 int y = (opcode & 0x00F0) >> 4;
-                System.out.print("Skips if V[0x" + Integer.toHexString(x).toUpperCase() + "] != V[0x" + Integer.toHexString(y).toUpperCase() +"]. ");
+                System.out.print("Skips if V[0x" + toHex(x) + "] != V[0x" + toHex(y) +"]. ");
                 if (V[x] != V[y]){
                     pc += 0x4;
-                    System.out.println("0x" + Integer.toHexString(V[x]).toUpperCase() + " != 0x" + Integer.toHexString(V[y]).toUpperCase() +". Skipping next instruction.");
+                    System.out.println("0x" + toHex(V[x]) + " != 0x" + toHex(V[y]) +". Skipping next instruction.");
                 }
                 else {
                     pc += 0x2;
-                    System.out.println("0x" + Integer.toHexString(V[x]).toUpperCase() + " == 0x" + Integer.toHexString(V[y]).toUpperCase() +". Not skipping next instruction.");
+                    System.out.println("0x" + toHex(V[x]) + " == 0x" + toHex(V[y]) +". Not skipping next instruction.");
                 }
                 break;
             }
@@ -338,7 +338,7 @@ public class Chip {
                 int nnn = (opcode & 0x0FFF);
                 I = (char)nnn;
                 pc += 0x2;
-                System.out.println("Set I to " + Integer.toHexString(nnn).toUpperCase());
+                System.out.println("Set I to " + toHex(nnn));
                 break;
             }
 
@@ -348,7 +348,7 @@ public class Chip {
                 int randomNumber =  new Random().nextInt(256) & nn;
                 V[x] = (char)(randomNumber & 0xFF);
                 pc += 0x2;
-                System.out.println("V[0x" + Integer.toHexString(x).toUpperCase() + "] has been set to (randomised) 0x" + Integer.toHexString(randomNumber).toUpperCase());
+                System.out.println("V[0x" + toHex(x) + "] has been set to (randomised) 0x" + toHex(randomNumber));
                 break;
             }
 
@@ -386,7 +386,7 @@ public class Chip {
                 }
                 pc += 0x2;
                 needRedraw = true;
-                System.out.println("Drawing at V[0x" + Integer.toHexString((opcode & 0x0F00) >> 8).toUpperCase() + "] = 0x" + Integer.toHexString(x).toUpperCase() + ", V[0x" + Integer.toHexString((opcode & 0x00F0) >> 4).toUpperCase() + "] = 0x" + Integer.toHexString(y).toUpperCase());
+                System.out.println("Drawing at V[0x" + toHex((opcode & 0x0F00) >> 8) + "] = 0x" + toHex(x) + ", V[0x" + toHex((opcode & 0x00F0) >> 4) + "] = 0x" + toHex(y));
                 break;
             }
 
@@ -433,7 +433,7 @@ public class Chip {
                         int x = (opcode & 0x0F00) >> 8;
                         V[x] = (char)delay_timer;
                         pc += 0x2;
-                        System.out.println("V[0x" + Integer.toHexString(x).toUpperCase() + "] has been set to delay_timer = 0x" + Integer.toHexString(delay_timer).toUpperCase());
+                        System.out.println("V[0x" + toHex(x) + "] has been set to delay_timer = 0x" + toHex(delay_timer));
                         break;
                     }
 
@@ -444,7 +444,7 @@ public class Chip {
                             if (keys[i] == 1) {
                                 V[x] = (char)i;
                                 pc += 0x2;
-                                System.out.print("Found: " + Integer.toHexString(i).toUpperCase() + "! ");
+                                System.out.print("Found: " + toHex(i) + "! ");
                                 break;
                             }
                         }
@@ -456,7 +456,7 @@ public class Chip {
                         int x = (opcode & 0x0F00) >> 8;
                         delay_timer = V[x];
                         pc += 0x2;
-                        System.out.println("Sets delay_timer to V[0x" + Integer.toHexString(x).toUpperCase() + "] = 0x" + Integer.toHexString(V[x]).toUpperCase());
+                        System.out.println("Sets delay_timer to V[0x" + toHex(x) + "] = 0x" + toHex(V[x]));
                         break;
                     }
 
@@ -464,7 +464,7 @@ public class Chip {
                         int x = (opcode & 0x0F00) >> 8;
                         sound_timer = V[x];
                         pc += 0x2;
-                        System.out.println("Sets sound_timer to V[0x" + Integer.toHexString(x).toUpperCase() + "] = 0x" + Integer.toHexString(V[x]).toUpperCase());
+                        System.out.println("Sets sound_timer to V[0x" + toHex(x) + "] = 0x" + toHex(V[x]));
                         break;
                     }
 
@@ -472,7 +472,7 @@ public class Chip {
                         int x = (opcode & 0x0F00) >> 8;
                         I = (char)((I + V[x]) & 0xFFFF);
                         pc += 0x2;
-                        System.out.println("Adding V[" + Integer.toHexString(x).toUpperCase() + "] to I. I = " + Integer.toHexString(I).toUpperCase());
+                        System.out.println("Adding V[" + toHex(x) + "] to I. I = " + toHex(I));
                         break;
                     }
 
@@ -480,7 +480,7 @@ public class Chip {
                         int x = (opcode & 0x0F00) >> 8;
                         int character = V[x];
                         I = (char)(0x50 + (character * 5));
-                        System.out.println("Setting I to Character V[0x" + Integer.toHexString(x).toUpperCase() + "] = 0x" + Integer.toHexString(V[x]).toUpperCase() + " Offset to 0x" + Integer.toHexString(I).toUpperCase());
+                        System.out.println("Setting I to Character V[0x" + toHex(x) + "] = 0x" + toHex(V[x]) + " Offset to 0x" + toHex(I));
                         pc += 0x2;
                         break;
                     }
@@ -496,7 +496,7 @@ public class Chip {
                         memory[I + 1] = (char)tens;
                         memory[I + 2] = (char)value;
                         pc += 0x2;
-                        System.out.println("Storing Binary-Coded Decimal V[0x" + Integer.toHexString(x).toUpperCase() + "] = " + Integer.toHexString(V[x]).toUpperCase() + " as { " + hundreds + ", " + tens + ", " + value + "}");
+                        System.out.println("Storing Binary-Coded Decimal V[0x" + toHex(x) + "] = " + toHex(V[x]) + " as { " + hundreds + ", " + tens + ", " + value + "}");
                         break;
                     }
 
@@ -506,9 +506,9 @@ public class Chip {
                             memory[I + i] = V[i];
                         }
                         pc += 0x2;
-                        System.out.println("Setting memory[0x" + Integer.toHexString(I & 0xFFFF)
-                                .toUpperCase() + "] = V[0x0] to V[0x" + Integer.toHexString
-                                (x).toUpperCase() + "]");
+                        System.out.println("Setting memory[0x" + toHex(I & 0xFFFF)
+                                           + "] = V[0x0] to V[0x" + toHex
+                                (x) + "]");
                         break;
                     }
 
@@ -518,7 +518,7 @@ public class Chip {
                             V[i] = memory[I + i];
                         }
                         pc += 0x2;
-                        System.out.println("Setting V[0x0] to V[0x" + Integer.toHexString(x).toUpperCase() + "] to the values of memory[0x" + Integer.toHexString(I & 0xFFFF).toUpperCase() + "]");
+                        System.out.println("Setting V[0x0] to V[0x" + toHex(x) + "] to the values of memory[0x" + toHex(I & 0xFFFF) + "]");
                         break;
                     }
                     default: {
@@ -601,7 +601,13 @@ public class Chip {
     public void setKeyBuffer(int[] keyBuffer) {
         for(int i = 0; i < keys.length; i++) {
             keys[i] = (byte)keyBuffer[i];
-//            System.out.println(i + ": " + keys[i]);
+            //            System.out.println(i + ": " + keys[i]);
         }
     }
+
+    /** Converts an integer to its hex string in uppercase */
+    private String toHex(int x) {
+        return Integer.toHexString(x).toUpperCase();
+    }
 }
+
