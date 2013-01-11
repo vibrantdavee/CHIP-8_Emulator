@@ -442,10 +442,10 @@ public class Chip {
                         System.out.print("Waiting for keypress. ");
                         for (int i = 0; i < keys.length; i++)  {
                             if (keys[i] == 1) {
-                                pc += 0x2;
                                 V[x] = (char)i;
+                                pc += 0x2;
                                 System.out.print("Found: " + Integer.toHexString(i).toUpperCase() + "! ");
-                                return;
+                                break;
                             }
                         }
                         System.out.println();
@@ -500,9 +500,15 @@ public class Chip {
                         break;
                     }
 
-                    case 0x0055: {
-                        System.err.println("Unsupported Opcode!");
-                        System.exit(0);
+                    case 0x0055: { // FX55: Stores V0 to VX in memory starting at address I
+                        int x = (opcode & 0x0F00) >> 8;
+                        for (int i = 0; i <= x; i++) {
+                            memory[I + i] = V[i];
+                        }
+                        pc += 0x2;
+                        System.out.println("Setting memory[0x" + Integer.toHexString(I & 0xFFFF)
+                                .toUpperCase() + "] = V[0x0] to V[0x" + Integer.toHexString
+                                (x).toUpperCase() + "]");
                         break;
                     }
 
