@@ -295,16 +295,41 @@ public class Chip {
                     }
 
 
-                    case 0x0007: { // 8007:
-                        System.err.println("Unsupported Opcode!");
-                        System.exit(0);
+                    case 0x0007: { // 8XY7: Sets VX to VY minus VX.  Update borrow flag
+                        int x = (opcode & 0x0F00) >> 8;
+                        int y = (opcode & 0x00F0) >> 4;
+
+                        if(V[x] > V[y]) {
+                            V[0xF] = 0;
+                            System.out.print("Borrow");
+                        } else {
+                            V[0xF] = 1;
+                            System.out.print("No borrow");
+                        }
+
+                        V[x] = (char)((V[y] - V[x]) & 0xFF);
+                        System.out.println("V[0x" + toHex(x) + "] = " + toHex(V[y]) + " - "
+                                           + toHex(V[x]));
+
+                        pc += 0x2;
                         break;
                     }
 
 
-                    case 0x000E: { // 800E:
-                        System.err.println("Unsupported Opcode!");
-                        System.exit(0);
+                    case 0x000E: { // 8XYE: Sets Vx = Vx SHL 1.
+                        int x = (opcode & 0x0F00) >> 8;
+                        // int y = (opcode & 0x00F0) >> 4;
+                        if ((V[x] & 0x80)==0x80){
+                            V[0xF] = 1;
+                            System.out.print("Overflow Flag raised. ");
+                        }
+                        else {
+                            V[0xF] = 0;
+                            System.out.print("Overflow Flag cleared. ");
+                        }
+                        System.out.println("Dividing V[0x" + toHex(x) + "] = " + toHex(V[x]) + "by 2. Result = 0x" + toHex(V[x]>>1));
+                        V[x] = (char)((V[x] << 1) & 0xFF);
+                        pc += 0x2;
                         break;
                     }
 
@@ -339,6 +364,13 @@ public class Chip {
                 I = (char)nnn;
                 pc += 0x2;
                 System.out.println("Set I to " + toHex(nnn));
+                break;
+            }
+
+            case 0xB000: { // BNNN Jumps to the address NNN plus V0.
+                int nnn = opcode & 0x0FFF;
+                int extra = V[0] & 0xFF;
+                pc = (char)(nnn + extra);
                 break;
             }
 
